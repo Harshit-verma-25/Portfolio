@@ -1,0 +1,186 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+html,body{
+    width: 100%;
+    height: 100%;
+}
+#main{
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+}
+
+/****** NAVIGATION BAR ******/
+nav{
+    height: 100px;
+    width: 100%;
+    display: flex;
+    padding: 0 5vw;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #dadada;
+    color: #fff;
+}
+
+/****** LOGO ******/
+nav .img1{
+    height: 35vh;
+    width: 15vw;
+}
+nav .img2{
+    height: 35vh;
+    width: 15vw;
+    display: none;
+}
+.nav1{
+    display: flex;
+    gap: 4vw;
+    align-items: center;
+}
+.nav1 h5{
+    font-size: 1vw;
+    font-weight: 900;
+}
+.nav1 button{
+    width: 7vw;
+    font-size: 1vw;
+    border-radius: 5px;
+    padding: 0.5vw;
+    background-color: #1DDDBD;
+    font-weight: 600;
+    border: none;
+}
+.nav1 i{
+    font-size: 6vw;
+    font-weight: 800;
+    display: none;
+}
+#dropdown{
+    display: none;
+    overflow: auto;
+    z-index: 1;
+}
+#dropdown-btn{
+    display: none;
+}
+
+/****** CONTENTS ******/
+.content{
+    width: 100%;
+    height: calc(100% - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+/****** PROFILE PICTURE ******/
+.content img{
+    height: 100%;
+    width: 27vw;
+    padding: 2vh;
+    border-radius: 25px;
+    margin-right: 10vw;
+}
+
+/****** CONTENT DESCRIPTION ******/
+.content .content-desc p{
+    font-size: 1.15vw;
+}
+.desc-color1{
+    color: #1DDDBD;
+}
+.desc-color2{
+    color: #fff;
+    margin-bottom: 3vh;
+}
+.content .content-desc h1{
+    font-size: 3vw;
+    font-weight: 900;
+    line-height: 6.5vh;
+    margin-top: 1vh;
+    margin-bottom: 1.5vh;
+}
+.content-desc i{
+    font-size: 2vw;
+}
+
+.show{
+    display: block;
+}
+
+/****** FOR RESOLUTON NOT MORE THAN 600px ******/
+@media (max-width:600px) 
+{
+    /****** NAVIGATION BAR ******/
+    nav{
+        background-color: black;
+        color: #fff;
+    }
+
+    /****** LOGO ******/
+    nav .img1{
+        display: none;
+    }
+    nav .img2{
+        height: 30vh;
+        width: 30vw;
+        display: block;
+    }
+    .nav1 h5{
+        display: none;
+    }
+    .nav1 .button{
+        display: none;
+    }
+    .nav1 #dropdown-btn{
+        display: block;
+        background-color: black;
+    }
+    .nav1 i{
+        display: block;
+        color: orangered;
+    }
+    .mydropdown{
+        position: relative;
+        display: inline-block;
+    }
+    #dropdown{
+        position: absolute;
+    }
+    #dropdown a{
+        display: block;
+    }
+    .content{
+        flex-wrap: wrap;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /****** PROFILE PICTURE ******/
+    .content img{
+        width: 50%;
+        height: 50%;
+        margin-left: 8vw;
+    }
+    .content .content-desc h1{
+        font-size: 4vw;
+        line-height: 3vh;
+    }
+    .content .content-desc p{
+        font-size: 3.5vw;
+        margin-bottom: 0;
+    }
+    .content-desc{
+        text-align: center;
+    }
+    /****** CONTENT DESCRIPTION ******/
+    .content-desc .desc-color1{
+        color: orangered;    
+    }
+}

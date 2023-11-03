@@ -1,0 +1,191 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+html,body{
+    width: 100%;
+    height: 100%;
+}
+#main{
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+}
+
+/****** NAVIGATION BAR ******/
+nav{
+    height: 100px;
+    width: 100%;
+    display: flex;
+    padding: 0 5vw;
+    /* background-color: aqua; */
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #dadada;
+    color: #fff;
+}
+
+/****** LOGO ******/
+nav .img1{
+    height: 35vh;
+    width: 15vw;
+}
+nav .img2{
+    height: 35vh;
+    width: 15vw;
+    display: none;
+}
+.nav1{
+    display: flex;
+    gap: 4vw;
+    align-items: center;
+}
+.nav1 h5{
+    font-size: 1vw;
+    font-weight: 900;
+}
+.nav1 button{
+    width: 7vw;
+    font-size: 1vw;
+    border-radius: 5px;
+    padding: 0.5vw;
+    background-color: #1DDDBD;
+    font-weight: 600;
+    border: none;
+}
+.nav1 i{
+    font-size: 4vw;
+    font-weight: 800;
+    display: none;
+}
+#dropdown, .mydropdown{
+    display: none;
+}
+
+/****** CONTACT CONTAINER ******/
+.contact{
+    width: 100%;
+    height: calc(100% - 100px);
+    color: #fff;
+    margin-left: 5vw;
+    padding: 1vh 0;
+}
+.con-heading{
+    display: flex;
+    font-size: 1.5vw;
+    flex-direction: column;
+}
+.contact-me{
+    display: flex;
+    gap: 1vw;
+    color: #1DDDBD;
+    font-size: 2.5vw;
+    align-items: center;
+}
+
+/****** INFORMATION ******/
+.con-icon{
+    font-size: 1.7vw;
+    line-height: 5vh;
+}
+.con-icon p{
+    color: #1DDDBD;
+}
+
+/****** INSTAGRAM ******/
+.con-icon1{
+    display: flex;
+    gap: 2vw;
+}
+
+/****** LINKEDIN ******/
+.con-icon2{ 
+    display: flex;
+    gap: 2vw;
+}
+
+/****** GITHUB ******/
+.con-icon3{
+    display: flex;
+    gap: 2vw;
+}
+
+/****** EMAIL ******/
+.con-icon4{
+    display: flex;
+    gap: 2vw;
+}
+
+/****** CONTACT NUMBER ******/
+.con-icon5{
+    display: flex;
+    gap: 2vw;
+}
+
+/****** FOR RESOLUTON NOT MORE THAN 600px ******/
+@media (max-width:600px) 
+{
+    /****** NAVIGATION BAR ******/
+    nav{
+        background-color: black;
+        color: #fff;
+    }
+
+    /****** LOGO ******/
+    nav .img1{
+        display: none;
+    }
+    nav .img2{
+        height: 30vh;
+        width: 30vw;
+        display: block;
+    }
+    .nav1 h5{
+        display: none;
+    }
+    .nav1 button{
+        display: none;
+    }   
+    .nav1 i{
+        display: block;
+        color: orangered;
+    }
+    .nav1 .mydropdown{
+        display: block;
+        background-color: black;
+    }
+    .nav1 i:hover{
+        color: orangered;
+    }
+
+    /****** CONTACT HEADING ******/
+    .contact{
+        flex-wrap: wrap;
+    }
+
+    .con-heading{
+        margin-right: 10vw;
+    }
+    .contact-me{
+        justify-content: center;
+        font-size: 6vw;
+        color: orangered;
+    }
+    .con-heading p{
+        font-size: 4vw;
+        text-align: center;
+    }
+
+    /****** INFORMATION ******/
+    .con-icon{
+        font-size: 5vw;
+        line-height: 7vh;
+    }
+    .con-icon p{
+        color: orangered;
+    }
+}
