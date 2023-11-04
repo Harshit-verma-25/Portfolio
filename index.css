@@ -115,7 +115,7 @@ nav .img2{
 }
 
 /****** FOR RESOLUTON NOT MORE THAN 600px ******/
-@media (max-width:600px) 
+@media (max-width:920px) 
 {
     /****** NAVIGATION BAR ******/
     nav{
