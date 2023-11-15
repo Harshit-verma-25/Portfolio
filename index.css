@@ -150,8 +150,12 @@ nav .img2{
         position: relative;
         display: inline-block;
     }
-    #dropdown{
+    #dropdown {
         position: absolute;
+        right: -35px;
+        width: 154px;
+        height: 110px;
+        line-height: 22px;
     }
     #dropdown a{
         display: block;
