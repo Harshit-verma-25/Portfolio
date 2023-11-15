@@ -57,11 +57,16 @@ nav .img2{
     border: none;
 }
 .nav1 i{
-    font-size: 4vw;
+    font-size: 6vw;
     font-weight: 800;
     display: none;
 }
-#dropdown, .mydropdown{
+#dropdown{
+    display: none;
+    overflow: auto;
+    z-index: 1;
+}
+#dropdown-btn{
     display: none;
 }
 
@@ -236,8 +241,12 @@ nav .img2{
     }
 }
 
+.show {
+    display: block;
+}
+
 /****** FOR RESOLUTON NOT MORE THAN 600px ******/
-@media (max-width:600px) 
+@media (max-width:920px) 
 {
     /****** NAVIGATION BAR ******/
     nav{
@@ -260,16 +269,27 @@ nav .img2{
     .nav1 button{
         display: none;
     }   
+    .nav1 #dropdown-btn{
+        display: block;
+        background-color: black;
+    }
     .nav1 i{
         display: block;
         color: orangered;
     }
-    .nav1 .mydropdown{
-        display: block;
-        background-color: black;
+    .mydropdown{
+        position: relative;
+        display: inline-block;
     }
-    .nav1 i:hover{
-        color: orangered;
+    #dropdown {
+        position: absolute;
+        right: -35px;
+        width: 154px;
+        height: 110px;
+        line-height: 22px;
+    }
+    #dropdown a{
+        display: block;
     }
 
     /****** EDUCATION CONTAINER ******/
