@@ -1,51 +1,40 @@
 # Harshit Verma — Portfolio
 
-An immersive, CMS-driven developer portfolio: React Three Fiber scenes, scroll storytelling, an AI assistant trained on the résumé, an interactive terminal, and a full admin dashboard on Supabase.
+A fast, premium developer portfolio with a full CMS. Public pages are server-rendered from Supabase; everything is editable in a role-protected admin dashboard.
 
-**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui (Radix) · Framer Motion · GSAP · Lenis · Three.js / React Three Fiber / Drei · Zustand · Supabase (Postgres, Auth, Storage) · Claude API · PostHog · Vercel Analytics
+**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui (Radix) · Framer Motion (LazyMotion) · Lenis · Zustand · Supabase (Postgres, Auth, Storage) · Claude API · PostHog · Vercel Analytics
 
 ## Highlights
 
-| Feature | Where |
-| --- | --- |
-| Hero: floating developer workspace (laptop typing code, terminal deploying, git graph, Postgres, API nodes) linked by flowing data particles; mouse parallax + scroll-driven camera | `src/components/three/hero-scene.tsx` |
-| Skills Universe: each discipline is a planet, skills are moons; click to fly in | `src/components/three/skills-galaxy.tsx`, `sections/skills-universe.tsx` |
-| Career timeline: pinned 3D helix, milestones as floating cards driven by scroll | `three/timeline-spine.tsx`, `sections/career-timeline.tsx` |
-| Project worlds: AI brain network (VisionCoach), cosmos (Skygaze India), storybook (KahaaniBot), workflow (LMS), ecosystem (Quyl) | `three/project-worlds.tsx` |
-| Interactive architecture diagram (VisionCoach) | `projects/architecture-flow.tsx` |
-| Apple-style project cards: 3D tilt, reflection, dynamic light | `motion/tilt-card.tsx` |
-| AI Portfolio Assistant (Claude, streaming, grounded in CMS content) | `app/api/chat/route.ts`, `lib/assistant.ts`, `chat/assistant.tsx` |
-| Interactive terminal (`` ` `` or Ctrl/⌘+K anywhere) | `terminal/terminal.tsx` |
-| Live GitHub heatmap + LeetCode stats | `lib/integrations.ts`, `sections/github-activity.tsx` |
-| Admin CMS at `/admin` with roles, media library, Markdown blog editor, leads pipeline, analytics | `app/admin/**`, `components/admin/**` |
+- **Lightweight motion**: word-by-word name reveal, typed role, aurora/grid/noise backgrounds, glass cards with a pointer-following glow, scroll-linked timeline, count-up stats. No WebGL; CSS does the continuous animation, and everything respects `prefers-reduced-motion`.
+- **Pages**: home, about, projects (filter and search), case studies with an interactive architecture diagram, experience timeline, blog, contact.
+- **Extras**: AI assistant grounded in your CMS content (loaded on demand), a terminal (`` ` `` or Ctrl/⌘+K), live GitHub heatmap, LeetCode stats, Calendly.
+- **Admin at `/admin`**: Supabase email/password auth with password reset, persistent sessions, `admin`/`editor` roles, CRUD for every content type, Markdown blog editor, media library, leads pipeline, team/role management, analytics.
 
 ## Quick start
 
 ```bash
 npm install
-cp .env.example .env.local   # everything is optional for local dev
-npm run dev                  # http://localhost:3000
+cp .env.example .env.local     # add your Supabase URL + keys
+npm run dev                    # http://localhost:3000
 ```
 
-The site renders **without any environment variables** — content falls back to `src/lib/data/content.ts`, the assistant and contact form explain they're not configured, and `/admin` redirects to its login page. Connect Supabase to turn on the CMS.
+Then set up the database and your admin account. [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) walks through it in about five minutes:
 
-### Scripts
+1. Supabase → SQL Editor → run `supabase/migrations/20260926000000_schema.sql`, then `supabase/seed.sql`.
+2. Authentication → Users → **Add user** with your email and a password (tick *Auto confirm*).
+3. Run `update public.profiles set role = 'admin' where email = 'you@example.com';`
+4. Sign in at `/admin/login`.
+
+All content comes from the database — there is no bundled fallback content.
 
 | Script | Purpose |
 | --- | --- |
 | `npm run dev` | Dev server (Turbopack) |
 | `npm run build` / `npm start` | Production build / serve |
 | `npm run lint` · `npm run typecheck` | ESLint · `tsc --noEmit` |
-| `npm run db:seed:generate` | Regenerate `supabase/seed.sql` from the static content file |
 
-## Documentation
+## Docs
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — folder structure, data flow, component / Three.js / admin architecture, API routes, database & RLS, SEO, analytics, accessibility and performance.
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — Supabase, admin user, Vercel, PostHog, Claude, GitHub/LeetCode, Calendly and email setup.
-
-## Content you should replace
-
-- **Testimonials** in the seed are placeholders (attributed by role only). Replace them in `/admin/testimonials`.
-- **Project details** (case-study copy, metrics, live URLs, screenshots) are starting drafts — refine them in `/admin/projects`.
-- **Experience dates** for Instinctive Studio are approximate — confirm them in `/admin/experiences`.
-- `public/resume.pdf` is generated from the site content; upload your own via **Admin → Profile → Résumé**.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — structure, data flow, auth & roles, RLS, API, performance, accessibility.
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — Supabase, admin account, Vercel, integrations, troubleshooting.

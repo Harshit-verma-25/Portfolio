@@ -13,7 +13,7 @@ export default async function ResourcePage({ params }: { params: Promise<{ resou
   const { resource } = await params;
   const config = resources[resource];
   if (!config) notFound();
-  const { supabase } = await requireStaff();
+  const { supabase } = await requireStaff(config.minRole);
   const { data, error } = await supabase.from(config.table).select("*").order(config.orderBy.column, { ascending: config.orderBy.ascending });
   if (error) throw new Error(error.message);
   return <ResourceManager resourceKey={resource} rows={data ?? []} />;

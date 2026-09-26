@@ -13,7 +13,7 @@ const STATUS_STYLE: Record<LeadStatus, string> = {
   closed: "bg-white/5 text-zinc-400 border-line",
 };
 
-export function LeadsTable({ leads }: { leads: Lead[] }) {
+export function LeadsTable({ leads, canDelete }: { leads: Lead[]; canDelete: boolean }) {
   const router = useRouter();
   const [filter, setFilter] = useState<LeadStatus | "all">("all");
   const [open, setOpen] = useState<string | null>(null);
@@ -82,6 +82,7 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                   <a href={`mailto:${lead.email}?subject=${encodeURIComponent(`Re: ${lead.subject}`)}`} className="rounded-lg p-2 text-muted hover:bg-white/10 hover:text-fg" aria-label={`Reply to ${lead.name}`}>
                     <Mail className="size-4" />
                   </a>
+                  {canDelete && (
                   <button
                     type="button"
                     onClick={() => window.confirm(`Delete the lead from ${lead.name}?`) && act(() => deleteLead(lead.id))}
@@ -90,6 +91,7 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                   >
                     <Trash2 className="size-4" />
                   </button>
+                  )}
                 </div>
               </div>
               {expanded && <p className="whitespace-pre-wrap border-t border-line px-4 py-4 pl-11 text-sm leading-relaxed text-zinc-300">{lead.message}</p>}

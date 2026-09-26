@@ -16,7 +16,10 @@ export type Row = Record<string, unknown> & { id?: string };
 
 /** Turns a DB row into editable form state (strings for inputs, arrays/booleans kept). */
 function toFormValue(field: Field, v: unknown): unknown {
-  if (v === null || v === undefined) {
+  if (v === null || v === undefined || v === "") {
+    // A required dropdown must start on a real option — otherwise it *shows* the first option
+    // while submitting an empty value.
+    if (field.type === "select" && field.required && field.options?.length) return field.options.find((o) => o !== "") ?? "";
     if (field.type === "switch") return false;
     if (field.type === "images") return [];
     if (field.type === "color") return "#6366F1";

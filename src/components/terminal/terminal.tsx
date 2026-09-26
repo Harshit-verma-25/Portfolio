@@ -26,7 +26,7 @@ const COMMANDS: Record<string, string> = {
   now: "What I'm building right now",
   projects: "List projects",
   open: "open <project> — open a case study",
-  skills: "Skills grouped by planet",
+  skills: "Skills grouped by category",
   experience: "Work history",
   contact: "How to reach me",
   socials: "Social links",
@@ -43,7 +43,7 @@ const COMMANDS: Record<string, string> = {
 
 export function Terminal({ data, className, autoFocus = false, onExit }: { data: TerminalData; className?: string; autoFocus?: boolean; onExit?: () => void }) {
   const router = useRouter();
-  const setChatOpen = useUI((s) => s.setChatOpen);
+  const ask = useUI((s) => s.ask);
   const [lines, setLines] = useState<Line[]>(() => [
     { kind: "accent", text: `Welcome to ${data.profile.name}'s portfolio shell v2.0` },
     { kind: "out", text: "Type `help` to see what you can do. Tab autocompletes, ↑/↓ browse history." },
@@ -145,8 +145,7 @@ export function Terminal({ data, className, autoFocus = false, onExit }: { data:
         if (!arg) push("usage: ask <question>", "err");
         else {
           push("Handing over to the AI assistant…", "accent");
-          window.dispatchEvent(new CustomEvent("assistant:ask", { detail: arg }));
-          setChatOpen(true);
+          ask(arg);
           onExit?.();
         }
         break;

@@ -1,13 +1,22 @@
 "use client";
 
-import { useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import { useUI } from "@/store/ui";
-import { Terminal, type TerminalData } from "./terminal";
+import type { TerminalData } from "./terminal";
+
+// The dialog and terminal only download the first time the terminal is opened.
+const TerminalDialog = dynamic(() => import("./terminal-dialog"), { ssr: false });
 
 /** Global terminal, opened from the navbar or with the backtick (`) / Ctrl+K shortcut. */
 export function TerminalOverlay({ data }: { data: TerminalData }) {
-  const { terminalOpen, setTerminalOpen } = useUI();
+  const terminalOpen = useUI((s) => s.terminalOpen);
+  const setTerminalOpen = useUI((s) => s.setTerminalOpen);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (terminalOpen) setLoaded(true);
+  }, [terminalOpen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -22,13 +31,5 @@ export function TerminalOverlay({ data }: { data: TerminalData }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [setTerminalOpen]);
 
-  return (
-    <Dialog open={terminalOpen} onOpenChange={setTerminalOpen}>
-      <DialogContent className="max-w-3xl border-none bg-transparent p-0 shadow-none sm:p-0" hideClose>
-        <DialogTitle className="sr-only">Interactive terminal</DialogTitle>
-        <DialogDescription className="sr-only">Type commands like help, projects or cd contact to explore the portfolio. Press Escape to close.</DialogDescription>
-        <Terminal data={data} autoFocus onExit={() => setTerminalOpen(false)} className="h-[70dvh]" />
-      </DialogContent>
-    </Dialog>
-  );
+  return loaded ? <TerminalDialog data={data} /> : null;
 }

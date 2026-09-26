@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { PROJECT_CATEGORIES, type Project } from "@/types";
 import { cn } from "@/lib/utils";
@@ -61,7 +61,7 @@ export function ProjectsExplorer({ projects }: { projects: Project[] }) {
                 aria-pressed={filter === f}
                 className={cn("relative shrink-0 rounded-full px-4 py-2 text-sm transition", filter === f ? "text-bg" : "text-muted hover:text-fg")}
               >
-                {filter === f && <motion.span layoutId="filter-pill" className="absolute inset-0 -z-10 rounded-full bg-white" transition={{ type: "spring", stiffness: 400, damping: 35 }} />}
+                {filter === f && <span className="absolute inset-0 -z-10 rounded-full bg-white" />}
                 {f}
                 <span className={cn("ml-1.5 font-mono text-[10px]", filter === f ? "text-bg/60" : "text-zinc-400")}>{counts[f] ?? 0}</span>
               </button>
@@ -93,15 +93,15 @@ export function ProjectsExplorer({ projects }: { projects: Project[] }) {
         {results.length} project{results.length === 1 ? "" : "s"} shown
       </p>
 
-      <motion.ul layout className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <AnimatePresence mode="popLayout">
           {results.map((p) => (
-            <motion.li key={p.id} layout initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
+            <m.li key={p.id} initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.94 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
               <ProjectCard project={p} />
-            </motion.li>
+            </m.li>
           ))}
         </AnimatePresence>
-      </motion.ul>
+      </ul>
 
       {results.length === 0 && (
         <div className="glass rounded-3xl p-12 text-center">

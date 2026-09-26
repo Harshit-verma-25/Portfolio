@@ -5,15 +5,14 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArrowLeft } from "lucide-react";
 import { JsonLd, articleJsonLd, breadcrumbJsonLd } from "@/components/seo/json-ld";
-import { getPostBySlug } from "@/lib/content";
-import { posts as staticPosts } from "@/lib/data/content";
+import { getPostBySlug, getPostSlugs } from "@/lib/content";
 import { formatDate } from "@/lib/utils";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  return staticPosts.filter((p) => p.status === "published").map((p) => ({ slug: p.slug }));
+  return getPostSlugs();
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

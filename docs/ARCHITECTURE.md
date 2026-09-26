@@ -1,171 +1,89 @@
 # Architecture
 
-## 1. Folder structure
+## Structure
 
 ```
-.
-├── public/                    # profile photo, résumé PDF, icon
-├── scripts/generate-seed.mjs  # builds supabase/seed.sql from src/lib/data/content.ts
-├── supabase/
-│   ├── migrations/            # schema, role helpers, RLS, storage bucket + policies
-│   └── seed.sql               # generated starter content
-└── src/
-    ├── middleware.ts          # Supabase session refresh + /admin gate
-    ├── app/
-    │   ├── layout.tsx         # <html>, fonts, global metadata, Vercel Analytics
-    │   ├── (site)/            # public site (route group with its own layout)
-    │   │   ├── layout.tsx     # navbar, footer, assistant, terminal, cursor, JSON-LD
-    │   │   ├── template.tsx   # page transition
-    │   │   ├── page.tsx       # home
-    │   │   ├── about/ experience/ contact/
-    │   │   ├── projects/ (+ [slug] case studies)
-    │   │   └── blog/ (+ [slug])
-    │   ├── admin/
-    │   │   ├── actions.ts     # server actions (CRUD, profile, leads, media)
-    │   │   ├── (auth)/login/
-    │   │   └── (panel)/       # protected: layout checks role
-    │   │       ├── page.tsx   # analytics dashboard
-    │   │       ├── [resource]/ # generic CRUD (projects, experiences, skills, …)
-    │   │       ├── profile/ media/ leads/
-    │   ├── api/
-    │   │   ├── chat/          # AI assistant (streaming)
-    │   │   ├── contact/       # lead capture + email notification
-    │   │   ├── events/        # first-party counters (résumé downloads, project views)
-    │   │   ├── github/ leetcode/
-    │   ├── auth/callback/ auth/signout/
-    │   ├── sitemap.ts robots.ts manifest.ts opengraph-image.tsx twitter-image.tsx
-    ├── components/
-    │   ├── ui/                # shadcn-style primitives (Radix + cva)
-    │   ├── motion/            # Reveal, TextReveal, Magnetic, TiltCard, SectionHeading
-    │   ├── layout/            # Navbar, Footer, SmoothScroll (Lenis+GSAP), cursor, aurora, providers
-    │   ├── three/             # SceneCanvas + all WebGL scenes, lazy entry points
-    │   ├── sections/          # home/page sections
-    │   ├── projects/          # cards, cover art, explorer, architecture diagram
-    │   ├── terminal/ chat/ seo/ admin/
-    ├── hooks/                 # media queries, device tier, in-view
-    ├── lib/
-    │   ├── content.ts         # data access with static fallback
-    │   ├── data/content.ts    # static fallback + seed source
-    │   ├── supabase/          # browser / server / service / middleware clients
-    │   ├── admin/             # resource configs, analytics queries, media upload
-    │   ├── assistant.ts integrations.ts analytics.ts auth.ts rate-limit.ts site.ts utils.ts
-    ├── store/ui.ts            # Zustand: menu, chat, terminal, cursor, hero progress, active planet
-    └── types/
+supabase/
+  migrations/20260926000000_schema.sql   tables · profiles & roles · RLS · storage (idempotent)
+  seed.sql                               starter content
+src/
+  middleware.ts                          session refresh + /admin gate
+  app/
+    (site)/                              public site: layout, page transition, pages
+    admin/
+      (auth)/login · forgot-password · reset-password
+      (panel)/                           protected dashboard (layout checks role)
+        page.tsx                         analytics
+        [resource]/                      generic CRUD: projects, experiences, skills, certifications,
+                                         testimonials, achievements, posts
+        profile/ media/ leads/ team/
+        error.tsx loading.tsx
+      actions.ts                         server actions (all writes)
+    api/  chat · contact · events · github · leetcode
+    auth/ callback (PKCE code + token_hash) · signout
+    sitemap.ts robots.ts manifest.ts opengraph-image.tsx
+  components/
+    ui/ motion/ layout/ sections/ projects/ terminal/ chat/ seo/ admin/
+  lib/
+    content.ts           public reads (Supabase only)
+    auth.ts              getSession / requireStaff / authorize
+    supabase/            browser, server, service-role and middleware clients
+    admin/               resource configs, analytics, media upload
 ```
 
-## 2. Data flow
+## Data flow
 
 ```
-Supabase (Postgres, RLS: public read) ──► lib/content.ts (React cache) ──► Server Components (ISR, revalidate 1h)
-            ▲                                     │ on error / empty
-            │                                     └──► lib/data/content.ts (static fallback)
-   /admin server actions ──► revalidatePath("/", "layout")  →  pages regenerate immediately
+Supabase (RLS: public read) → lib/content.ts (React cache) → Server Components (ISR, 1 h)
+/admin server actions (user's JWT, RLS enforced) → revalidatePath("/", "layout") → pages regenerate
 ```
 
-- Public pages are **statically generated with ISR**. Content reads use a cookie-less anon client so they stay cacheable.
-- Admin writes go through **server actions** using the signed-in user's client, so **RLS is the source of truth**; the actions re-check the role as defence in depth and revalidate the whole site.
-- The AI assistant's knowledge base is built from the same `lib/content.ts` calls, so editing a project in the CMS updates what the assistant knows.
+There is no bundled content. If Supabase is unreachable, sections render empty and the error is logged.
 
-## 3. Component architecture
+## Authentication & sessions
 
-- **Server by default.** Sections that only render content (`About`, `FeaturedProjects`, `Testimonials`, `Achievements`, `TechStack`, `GithubActivity`) are Server Components. Interactive islands (`Hero`, `SkillsUniverse`, `CareerTimeline`, `ExperienceList`, `ProjectsExplorer`, `Terminal`, `Assistant`, `ContactForm`) are client components receiving plain props.
-- **Motion primitives** (`components/motion`) wrap Framer Motion patterns — reveal on view, staggered children, masked word reveals, magnetic buttons, 3D tilt cards — so sections stay declarative. `MotionConfig reducedMotion="user"` disables transforms for users who prefer reduced motion.
-- **Smooth scroll**: Lenis is driven by GSAP's ticker and pipes scroll into `ScrollTrigger.update`, keeping GSAP and Lenis perfectly in sync. It's skipped entirely under reduced motion.
-- **Global UI state** lives in a tiny Zustand store (`store/ui.ts`). R3F scenes read it inside `useFrame` via `useUI.getState()` so scroll progress never re-renders React.
+- **Sign in**: email + password (`signInWithPassword`) in the browser. `@supabase/ssr` stores the session in cookies, and the page then does a full navigation, so the server sees the new cookies on the first request.
+- **Refresh and persistence**: `middleware.ts` runs on `/admin/*` and `/auth/*` and calls `supabase.auth.getUser()`. When the access token has expired, the client uses the refresh token and writes new cookies onto the response, so sessions survive reloads and idle time. `AuthListener` in the dashboard also refreshes in the background, sends every tab to login on `SIGNED_OUT`, and re-validates when a tab regains focus.
+- **Route protection**: middleware redirects signed-out visitors from any `/admin` path except `/admin/login` and `/admin/forgot-password` to `/admin/login?next=<path>`. The `next` value is checked so it can only point inside `/admin`. The panel layout calls `requireStaff()`, which validates the JWT with Supabase (`getUser`, not the unverified `getSession`) and loads the role from `public.profiles`.
+- **Password reset**: `/admin/forgot-password` → `resetPasswordForEmail(redirectTo: /auth/callback?next=/admin/reset-password)` → `/auth/callback` exchanges the code (or verifies a `token_hash`) and sets the session → `/admin/reset-password` → `updateUser({ password })` → sign out globally → log in again.
+- **Sign out**: `POST /auth/signout` revokes the refresh token and clears the cookies.
+- **No redirect loops**: a signed-in user without a role sees a "no role yet" notice on the login page instead of being bounced between login and dashboard.
 
-## 4. Three.js architecture
+## Roles
 
-```
-three/lazy.tsx            next/dynamic(ssr:false) entry points — three.js is never in the server bundle or first paint
-three/scene-canvas.tsx    shared <Canvas>: DPR capped by device tier, PerformanceMonitor lowers DPR on FPS drops,
-                          frameloop="never" when off-screen, role="img" + aria-label
-three/primitives.tsx      Label3D (canvas-texture sprites; no font fetch), FlowParticles (1 draw call),
-                          CurveLine, Starfield, bezier()
-three/textures.ts         animated canvas textures: code editor (typing), terminal (deploy log)
-three/hero-scene.tsx      workspace + Rig (pointer parallax, scroll camera keyframes from store.heroProgress)
-three/skills-galaxy.tsx   sun, orbit rings, planets (click → store.activePlanet), CameraDirector fly-in
-three/timeline-spine.tsx  helix tube; progress tube uses setDrawRange so progress follows the curve
-three/project-worlds.tsx  brain / cosmos / storybook / workflow / ecosystem + PointerOrbit
-```
+`public.profiles (id, email, role, created_at)`: one row per auth user, created by a trigger on `auth.users`. `role` is `admin`, `editor` or `null`, and new users start at `null`. Users can read their own row; only admins can change roles, from **Team**. Nobody can promote themselves.
 
-Performance rules applied everywhere: geometry/material/texture disposal on unmount, instanced/points rendering for particles, canvas textures redrawn at ~20 fps rather than every frame, particle counts scaled by `useDeviceTier()`, and every scene has a static fallback (aurora/gradient/cover art) under `prefers-reduced-motion`.
-
-**Mobile**: the hero repositions the workspace above the headline at 60 % scale; the career timeline switches to a vertical rail (no pinning); the skills galaxy exposes planets as a horizontally scrollable chip row; the custom cursor, tilt and magnetic effects only activate for fine pointers.
-
-## 5. Admin architecture
-
-- **Auth**: Supabase Auth (password or magic link). `middleware.ts` refreshes the session and requires a user for `/admin/*`; `(panel)/layout.tsx` calls `requireStaff()` which checks `admin_users`.
-- **Roles**: `admin` (everything) and `editor` (content CRUD + media upload). Profile, leads and media deletion require `admin`. Enforced by RLS helpers `is_staff()` / `is_admin()` and mirrored in the UI.
-- **Generic CRUD**: `lib/admin/resources.ts` declares each resource (table, fields, list columns, ordering). `ResourceManager` + `RecordForm` render a searchable table and a dialog editor for any config. Field types: text, textarea, markdown, number, date, switch, tags, lines, select, url, image, images, json, color.
-- **Blog**: Markdown editor with toolbar + shortcuts (⌘B/⌘I/⌘K), media insertion, live preview using the public renderer, draft/publish (publishing stamps `published_at` once), SEO title/description.
-- **Media library**: browser-direct uploads to Supabase Storage (no serverless body limits), indexed in `media`; drag & drop, type filters, copy URL, admin-only delete. A `MediaPicker` dialog is reused by image fields, the profile form and the Markdown editor.
-- **Leads**: status pipeline (new → contacted → closed), filter chips, expand message, mailto reply, delete.
-- **Analytics**: see §8.
-
-## 6. API architecture
-
-| Route | Method | Purpose | Protection |
-| --- | --- | --- | --- |
-| `/api/chat` | POST | Streams Claude answers as `text/plain` | zod validation, 20 req/min/IP, 20 messages × 2 000 chars max |
-| `/api/contact` | POST | Validates, stores lead (service role), emails via Resend | zod, honeypot, 5 req/10 min/IP |
-| `/api/events` | POST | Records `resume_download` / `project_view` | zod, 60 req/min/IP, service role insert |
-| `/api/github` | GET | Contribution calendar + top repos | cached 3 h |
-| `/api/leetcode` | GET | Solved counts + contest rating | cached 3 h |
-| `/auth/callback` | GET | Magic-link code exchange | redirects only to `/admin*` |
-| `/auth/signout` | POST | Sign out | — |
-
-Admin mutations are **server actions** (`app/admin/actions.ts`), not public routes.
-
-The in-memory rate limiter is per-instance; add Vercel WAF rules or an Upstash limiter for a global cap.
-
-### AI assistant
-
-`/api/chat` uses the official `@anthropic-ai/sdk` with `claude-opus-5`, `output_config.effort: "low"` (fast conversational answers), the server-side refusal fallback (`fallbacks: "default"` with the `server-side-fallback-2026-07-01` beta), and a cached system prompt (`cache_control: ephemeral`) containing the knowledge base. The prompt instructs the model to answer only from the knowledge base and point to `/contact` otherwise.
-
-## 7. Database
-
-Tables: `profile` (single row), `projects`, `experiences`, `skills`, `certifications`, `testimonials`, `achievements`, `posts`, `media`, `leads`, `events`, `admin_users`. All have RLS enabled:
+Checked in three places: RLS (`is_admin()` / `is_staff()` security-definer helpers), server actions (`authorize(minRole)`), and the UI (`requireStaff(minRole)`, a filtered sidebar).
 
 | Table | anon | editor | admin |
 | --- | --- | --- | --- |
-| projects, experiences, skills, certifications, testimonials, achievements | read | CRUD | CRUD |
-| posts | read published | CRUD (incl. drafts) | CRUD |
-| profile | read | read | write |
-| media (index) | — | read, insert | + delete |
-| storage `media` bucket | public URLs | upload/update | + delete |
-| leads | — (server inserts with service role) | — | read, update, delete |
-| events | — (server inserts) | read | read |
-| admin_users | — | read | manage |
+| projects, experiences, skills | read | read | write |
+| certifications, testimonials, achievements | read | write | write |
+| posts | published | read all | write |
+| site_profile | read | read | write |
+| media + storage bucket | public URLs | read index | write |
+| leads | server insert only | read, update status | + delete |
+| events | server insert only | read | read |
+| profiles | — | own row | all, update roles |
 
-`is_staff()` / `is_admin()` are `SECURITY DEFINER` functions so policies can check roles without recursive RLS.
+## Admin
 
-## 8. Analytics
+`lib/admin/resources.ts` declares every content type: its table, fields, list columns, sort order and `minRole`. `ResourceManager` and `RecordForm` render a searchable table and a dialog editor for any of them. Writes go through server actions that coerce form values into typed columns, run as the signed-in user so RLS applies, turn database errors into readable messages (duplicate slug, permission denied, expired session), and revalidate the site.
 
-- **PostHog** (client): initialised in `AnalyticsProvider` behind a `/ingest` reverse proxy (see `next.config.ts`), manual `$pageview` on route change, custom events via `track()` — `resume_downloaded`, `project_viewed`, `contact_submitted`, `assistant_message`, `terminal_command`, `planet_opened`, `calendly_opened`. Respects Do Not Track.
-- **First-party counters**: résumé downloads and project views are also written to `events` so the dashboard has numbers even when ad-blockers drop PostHog.
-- **Admin dashboard** (`lib/admin/analytics.ts`): HogQL queries via the PostHog Query API (visitors, pageviews, daily visitors, top pages) + Supabase counts (contact submissions, résumé downloads, project views, top projects). Without PostHog credentials the chart falls back to first-party events.
-- **Vercel Analytics + Speed Insights** are rendered only on Vercel deployments.
+Media uploads go straight from the browser to Supabase Storage, so large files never pass through a serverless function. Each upload is then indexed in `media`.
 
-## 9. SEO
+## Performance
 
-- Metadata API: title template, description, keywords, canonical URLs per page, Open Graph + Twitter cards, `robots` (admin is `noindex`).
-- Dynamic metadata for project case studies and blog posts (`generateMetadata`).
-- Generated OG/Twitter images (`opengraph-image.tsx`) with `next/og`.
-- JSON-LD: `Person` + `WebSite` site-wide; `CreativeWork` per project; `BlogPosting` per post; `BreadcrumbList` on inner pages.
-- `sitemap.ts` (includes CMS projects and posts), `robots.ts` (disallows `/admin`, `/api`, `/auth`), `manifest.ts`.
+- No WebGL. Continuous animation (aurora, marquee, float, pulse) is CSS. Framer Motion loads through `LazyMotion` with `domAnimation`, which drops layout projection and drag.
+- Loaded only when needed: the AI assistant panel (and its Markdown renderer), the terminal dialog, and PostHog (initialised when the browser is idle).
+- Server Components with ISR for every public page. GitHub and LeetCode data is cached for 3 hours and streamed behind `<Suspense>`.
+- Home page first-load JS: ~165 kB. The previous WebGL version was 309 kB plus lazy 3D chunks.
+- Lenis smooth scrolling runs only for mouse wheels; touch devices keep native scrolling.
 
-## 10. Accessibility
+## Accessibility
 
-- Skip link, landmark structure, one `h1` per page, `aria-labelledby` sections.
-- All animated text keeps the full sentence in `aria-label`; animated spans are `aria-hidden`.
-- Every canvas has `role="img"` + a descriptive label; content inside 3D scenes is duplicated in accessible DOM (timeline `sr-only` list, planet toolbar buttons, architecture nodes are focusable buttons).
-- Visible `:focus-visible` rings, keyboard-operable terminal / assistant / dialogs (Radix), `aria-live` regions for chat, terminal output and filter results.
-- `prefers-reduced-motion`: Lenis off, WebGL replaced by static art, Framer transforms disabled, CSS animations collapsed.
-- Colour: text on `#050816` uses white / `#A1A1AA` (≥ 4.5:1).
+Skip link, one `h1` per page, labelled sections, visible focus rings, keyboard-operable dialogs (Radix), `aria-live` for chat, terminal and filter results. Progress bars use `role="meter"`, and count-ups expose their final value to screen readers. Reduced motion disables the typing effect, transforms and CSS animations. Body text is at least 4.5:1 contrast.
 
-## 11. Performance
+## SEO
 
-- Three.js, the galaxy and project worlds are code-split and client-only; canvases pause off-screen.
-- Server Components + ISR for all public pages; GitHub/LeetCode fetches cached 3 h and streamed behind `<Suspense>`.
-- `next/image` with AVIF/WebP, `optimizePackageImports` for icon/animation libs, local Geist fonts (no layout shift, no external font request).
-- Calendly iframe mounts only on click; the AI assistant bundle is small and streams responses.
+Metadata API with per-page canonical URLs, dynamic metadata for projects and posts, generated OG and Twitter images, JSON-LD (`Person`, `WebSite`, `CreativeWork`, `BlogPosting`, `BreadcrumbList`), a sitemap built from the database, and `robots.txt` that disallows `/admin`, `/api` and `/auth`.

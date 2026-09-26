@@ -1,4 +1,4 @@
-import { PROJECT_CATEGORIES, PROJECT_WORLDS, SKILL_CATEGORIES } from "@/types";
+import { PROJECT_CATEGORIES, SKILL_CATEGORIES, type Role } from "@/types";
 
 export type FieldType = "text" | "textarea" | "markdown" | "number" | "date" | "switch" | "tags" | "lines" | "select" | "url" | "image" | "images" | "json" | "color";
 
@@ -25,6 +25,8 @@ export interface ResourceConfig {
   orderBy: { column: string; ascending: boolean };
   /** Field used to generate the slug automatically. */
   slugFrom?: string;
+  /** Minimum role allowed to create, edit and delete (mirrors the RLS policies). */
+  minRole: Role;
 }
 
 const caseStudyTemplate = JSON.stringify(
@@ -36,6 +38,7 @@ const caseStudyTemplate = JSON.stringify(
 export const resources: Record<string, ResourceConfig> = {
   projects: {
     key: "projects",
+    minRole: "admin",
     table: "projects",
     title: "Projects",
     singular: "Project",
@@ -63,7 +66,6 @@ export const resources: Record<string, ResourceConfig> = {
       { name: "github_url", label: "GitHub URL", type: "url" },
       { name: "live_url", label: "Live URL", type: "url" },
       { name: "accent", label: "Accent colour", type: "color" },
-      { name: "world", label: "3D world", type: "select", options: ["", ...PROJECT_WORLDS], help: "Interactive scene shown at the top of the case study." },
       { name: "featured", label: "Featured", type: "switch" },
       { name: "order_index", label: "Order", type: "number" },
       {
@@ -78,11 +80,12 @@ export const resources: Record<string, ResourceConfig> = {
   },
   experiences: {
     key: "experiences",
+    minRole: "admin",
     table: "experiences",
     title: "Experience",
     singular: "Role",
-    description: "Companies, roles and achievements.",
-    orderBy: { column: "order_index", ascending: true },
+    description: "Roles and education — shown newest first on the timeline.",
+    orderBy: { column: "start_date", ascending: false },
     columns: [
       { name: "position", label: "Position" },
       { name: "company", label: "Company" },
@@ -93,7 +96,7 @@ export const resources: Record<string, ResourceConfig> = {
       { name: "company", label: "Company", type: "text", required: true },
       { name: "position", label: "Position", type: "text", required: true },
       { name: "location", label: "Location", type: "text" },
-      { name: "employment_type", label: "Type", type: "select", options: ["Full-time", "Part-time", "Internship", "Contract", "Freelance"] },
+      { name: "employment_type", label: "Type", type: "select", required: true, options: ["Full-time", "Part-time", "Internship", "Contract", "Freelance", "Education"] },
       { name: "start_date", label: "Start date", type: "date", required: true },
       { name: "end_date", label: "End date", type: "date", help: "Leave empty for current role." },
       { name: "description", label: "Description", type: "textarea", wide: true },
@@ -104,10 +107,11 @@ export const resources: Record<string, ResourceConfig> = {
   },
   skills: {
     key: "skills",
+    minRole: "admin",
     table: "skills",
     title: "Skills",
     singular: "Skill",
-    description: "Every skill becomes a moon of its category planet in the Skills Universe.",
+    description: "Grouped by category in the skills grid, with proficiency bars.",
     orderBy: { column: "category", ascending: true },
     columns: [
       { name: "name", label: "Skill" },
@@ -126,6 +130,7 @@ export const resources: Record<string, ResourceConfig> = {
   },
   certifications: {
     key: "certifications",
+    minRole: "editor",
     table: "certifications",
     title: "Certifications",
     singular: "Certification",
@@ -146,6 +151,7 @@ export const resources: Record<string, ResourceConfig> = {
   },
   testimonials: {
     key: "testimonials",
+    minRole: "editor",
     table: "testimonials",
     title: "Testimonials",
     singular: "Testimonial",
@@ -167,6 +173,7 @@ export const resources: Record<string, ResourceConfig> = {
   },
   achievements: {
     key: "achievements",
+    minRole: "editor",
     table: "achievements",
     title: "Achievements",
     singular: "Achievement",
@@ -187,6 +194,7 @@ export const resources: Record<string, ResourceConfig> = {
   },
   posts: {
     key: "posts",
+    minRole: "admin",
     table: "posts",
     title: "Blog",
     singular: "Post",

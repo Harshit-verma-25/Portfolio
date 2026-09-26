@@ -4,11 +4,11 @@ import { Download, Target, Heart, Zap, Eye } from "lucide-react";
 import { TextReveal } from "@/components/motion/text-reveal";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Aurora } from "@/components/layout/aurora";
-import { CareerTimeline } from "@/components/sections/career-timeline";
+import { Timeline } from "@/components/sections/timeline";
 import { NowBuilding } from "@/components/sections/now-building";
 import { ResumeButton } from "@/components/sections/resume-button";
 import { JsonLd, breadcrumbJsonLd } from "@/components/seo/json-ld";
-import { getMilestones, getProfile } from "@/lib/content";
+import { getExperiences, getProfile } from "@/lib/content";
 
 export const revalidate = 3600;
 
@@ -32,7 +32,7 @@ const GOALS = [
 ];
 
 export default async function AboutPage() {
-  const profile = await getProfile();
+  const [profile, experiences] = await Promise.all([getProfile(), getExperiences()]);
   return (
     <>
       <JsonLd data={breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "About", path: "/about" }])} />
@@ -78,7 +78,7 @@ export default async function AboutPage() {
         </Reveal>
       </section>
 
-      <NowBuilding now={profile.now_building} />
+      {profile.now_building.company && <NowBuilding now={profile.now_building} />}
 
       <section className="section" aria-labelledby="values-title">
         <div className="container-page">
@@ -99,7 +99,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <CareerTimeline milestones={getMilestones()} />
+      <Timeline experiences={experiences} eyebrow="Journey" title="From first HTML tag to production systems." />
 
       <section className="section" aria-labelledby="goals-title">
         <div className="container-page">

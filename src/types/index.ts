@@ -1,15 +1,14 @@
 export const PROJECT_CATEGORIES = ["Full Stack", "AI", "SaaS", "EdTech", "Cloud", "Open Source"] as const;
 export type ProjectCategory = (typeof PROJECT_CATEGORIES)[number];
 
-export const SKILL_CATEGORIES = ["frontend", "backend", "cloud", "ai", "database", "tools"] as const;
+export const SKILL_CATEGORIES = ["frontend", "backend", "database", "cloud", "ai", "devops"] as const;
 export type SkillCategory = (typeof SKILL_CATEGORIES)[number];
+
+export const ROLES = ["admin", "editor"] as const;
+export type Role = (typeof ROLES)[number];
 
 export const LEAD_STATUSES = ["new", "contacted", "closed"] as const;
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
-
-/** Which interactive 3D "world" renders at the top of a project case study. */
-export const PROJECT_WORLDS = ["brain", "cosmos", "storybook", "workflow", "ecosystem"] as const;
-export type ProjectWorld = (typeof PROJECT_WORLDS)[number];
 
 export interface SocialLinks {
   github?: string;
@@ -72,7 +71,6 @@ export interface Project {
   order_index: number;
   year: number;
   accent: string;
-  world: ProjectWorld | null;
   case_study: CaseStudy | null;
 }
 
@@ -128,15 +126,6 @@ export interface Achievement {
   order_index: number;
 }
 
-export interface Milestone {
-  id: string;
-  year: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  kind: "education" | "work" | "project" | "community";
-}
-
 export interface Post {
   id: string;
   slug: string;
@@ -170,5 +159,12 @@ export interface MediaItem {
   url: string;
   mime_type: string;
   size: number;
+  created_at: string;
+}
+
+export interface StaffProfile {
+  id: string;
+  email: string;
+  role: Role | null;
   created_at: string;
 }

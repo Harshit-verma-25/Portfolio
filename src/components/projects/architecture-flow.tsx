@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type Node = { id: string; label: string; group: string };
@@ -72,7 +72,7 @@ export function ArchitectureFlow({ nodes, accent }: { nodes: Node[]; accent: str
             return (
               <g key={`${a}-${b}`} opacity={lit ? 1 : 0.15} className="transition-opacity duration-300">
                 <path d={d} fill="none" stroke="url(#edge)" strokeWidth={2} />
-                <motion.path d={d} fill="none" stroke="#fff" strokeWidth={2} strokeDasharray="4 16" initial={{ strokeDashoffset: 0 }} animate={{ strokeDashoffset: -200 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
+                <m.path d={d} fill="none" stroke="#fff" strokeWidth={2} strokeDasharray="4 16" initial={{ strokeDashoffset: 0 }} animate={{ strokeDashoffset: -200 }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} />
               </g>
             );
           })}

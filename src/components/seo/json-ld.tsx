@@ -19,7 +19,7 @@ export const personJsonLd = (profile: Profile) => ({
   sameAs: Object.values(profile.socials).filter(Boolean),
   worksFor: { "@type": "Organization", name: profile.now_building.company },
   alumniOf: { "@type": "CollegeOrUniversity", name: "Vivekanand Institute of Professional Studies" },
-  knowsAbout: ["Full Stack Development", "Next.js", "React", "Node.js", "Supabase", "Three.js", "Artificial Intelligence"],
+  knowsAbout: ["Full Stack Development", "Next.js", "React", "Node.js", "Supabase", "PostgreSQL", "Artificial Intelligence"],
 });
 
 export const websiteJsonLd = () => ({

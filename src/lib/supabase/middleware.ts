@@ -2,19 +2,25 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from "./env";
 
+/** Admin pages reachable without a session. */
+const PUBLIC_ADMIN_PATHS = ["/admin/login", "/admin/forgot-password"];
+
 /**
- * Refreshes the Supabase session cookie on every matched request and gates /admin.
- * Role checks (is the user an admin?) happen server-side in `requireAdmin()` —
- * middleware only guarantees there is a signed-in user.
+ * Runs on /admin/* and /auth/*:
+ *  1. Refreshes the Supabase session. If the access token has expired, `getUser()` uses the
+ *     refresh token and the new cookies are written onto the response, so sessions survive
+ *     reloads and long idle periods until the refresh token itself is revoked or expires.
+ *  2. Redirects signed-out visitors from protected admin pages to /admin/login?next=…
+ *
+ * Role checks happen server-side in `requireStaff()`.
  */
 export async function updateSession(request: NextRequest) {
-  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
-  const isLogin = request.nextUrl.pathname.startsWith("/admin/login");
+  const { pathname, search } = request.nextUrl;
+  const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isPublicAdmin = PUBLIC_ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
   if (!isSupabaseConfigured) {
-    if (isAdminRoute && !isLogin) {
-      return NextResponse.redirect(new URL("/admin/login?error=not-configured", request.url));
-    }
+    if (isAdmin && !isPublicAdmin) return NextResponse.redirect(new URL("/admin/login?error=not-configured", request.url));
     return NextResponse.next({ request });
   }
 
@@ -31,15 +37,21 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
+  // Do not run code between createServerClient and getUser() — it must refresh the session first.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (isAdminRoute && !isLogin && !user) {
+  if (isAdmin && !isPublicAdmin && !user) {
     const url = new URL("/admin/login", request.url);
-    url.searchParams.set("next", request.nextUrl.pathname);
-    return NextResponse.redirect(url);
+    url.searchParams.set("next", pathname + search);
+    const redirect = NextResponse.redirect(url);
+    // Carry over any cookie changes (e.g. a cleared, expired session).
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
+    return redirect;
   }
 
+  // Never cache authenticated admin responses.
+  if (isAdmin) response.headers.set("Cache-Control", "private, no-store");
   return response;
 }

@@ -1,63 +1,77 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2, Mail } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+const FRIENDLY: Record<string, string> = {
+  invalid_credentials: "Incorrect email or password.",
+  email_not_confirmed: "Confirm your email address first — check your inbox.",
+  over_request_rate_limit: "Too many attempts. Wait a minute and try again.",
+  user_banned: "This account is disabled.",
+};
+
 export function LoginForm({ next, disabled }: { next: string; disabled?: boolean }) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ kind: "error" | "info"; text: string } | null>(null);
-  const safeNext = next.startsWith("/admin") ? next : "/admin";
+  const [error, setError] = useState<string | null>(null);
 
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
-    const { error } = await createClient().auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) return setMessage({ kind: "error", text: error.message });
-    router.replace(safeNext);
-    router.refresh();
-  };
-
-  const magicLink = async () => {
-    if (!email) return setMessage({ kind: "error", text: "Enter your email first." });
-    setLoading(true);
-    const { error } = await createClient().auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`, shouldCreateUser: false },
-    });
-    setLoading(false);
-    setMessage(error ? { kind: "error", text: error.message } : { kind: "info", text: "Check your inbox for a sign-in link." });
+    setError(null);
+    const { error } = await createClient().auth.signInWithPassword({ email: email.trim(), password });
+    if (error) {
+      setLoading(false);
+      setError(FRIENDLY[error.code ?? ""] ?? error.message);
+      return;
+    }
+    // Full navigation so the server sees the fresh auth cookies on the very first request.
+    window.location.assign(next);
   };
 
   return (
-    <form onSubmit={signIn} className="glass space-y-4 rounded-3xl p-6">
+    <form onSubmit={signIn} className="glass space-y-4 rounded-3xl p-6" noValidate>
       <div>
         <Label htmlFor="email">Email</Label>
         <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-2" disabled={disabled} />
       </div>
       <div>
-        <Label htmlFor="password">Password</Label>
-        <Input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-2" disabled={disabled} />
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Password</Label>
+          <Link href="/admin/forgot-password" className="text-xs text-muted hover:text-fg">
+            Forgot password?
+          </Link>
+        </div>
+        <div className="relative mt-2">
+          <Input
+            id="password"
+            type={show ? "text" : "password"}
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="pr-11"
+            disabled={disabled}
+          />
+          <button type="button" onClick={() => setShow(!show)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-muted hover:text-fg" aria-label={show ? "Hide password" : "Show password"}>
+            {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        </div>
       </div>
-      {message && (
-        <p role={message.kind === "error" ? "alert" : "status"} className={message.kind === "error" ? "text-sm text-red-400" : "text-sm text-cyan-300"}>
-          {message.text}
+      {error && (
+        <p role="alert" className="text-sm text-red-400">
+          {error}
         </p>
       )}
-      <Button type="submit" className="w-full" disabled={loading || disabled || !password}>
+      <Button type="submit" className="w-full" disabled={loading || disabled || !email || !password}>
         {loading && <Loader2 className="animate-spin" />} Sign in
-      </Button>
-      <Button type="button" variant="outline" className="w-full" onClick={magicLink} disabled={loading || disabled}>
-        <Mail /> Email me a magic link
       </Button>
     </form>
   );

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getAchievements, getCertifications, getExperiences, getMilestones, getProfile, getProjects, getSkills } from "@/lib/content";
+import { getAchievements, getCertifications, getExperiences, getProfile, getProjects, getSkills } from "@/lib/content";
 import { formatRange } from "@/lib/utils";
 
 /**
@@ -28,11 +28,8 @@ Bio: ${profile.bio}
 Socials: ${Object.entries(profile.socials).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join(", ")}
 Now building: ${profile.now_building.role} at ${profile.now_building.company} — ${profile.now_building.summary} (${profile.now_building.items.join("; ")})`,
 
-    `# Experience
+    `# Experience & education
 ${experiences.map((e) => `- ${e.position} at ${e.company} (${e.employment_type}, ${formatRange(e.start_date, e.end_date)}, ${e.location}). ${e.description} Achievements: ${e.achievements.join("; ")}. Tech: ${e.tech.join(", ")}.`).join("\n")}`,
-
-    `# Education & journey
-${getMilestones().map((m) => `- ${m.year}: ${m.title} — ${m.subtitle}. ${m.description}`).join("\n")}`,
 
     `# Skills (proficiency %, years)
 ${skills.map((s) => `- ${s.name} [${s.category}] ${s.proficiency}%, ${s.years}y`).join("\n")}`,

@@ -20,7 +20,7 @@ export default function OpengraphImage() {
           <div style={{ fontSize: 44, marginTop: 20, display: "flex", backgroundImage: "linear-gradient(90deg,#818CF8,#A78BFA,#22D3EE)", backgroundClip: "text", color: "transparent" }}>Full Stack Software Developer</div>
         </div>
         <div style={{ display: "flex", gap: 14, fontSize: 24, color: "#D4D4D8" }}>
-          {["Next.js", "Three.js", "Supabase", "AI"].map((t) => (
+          {["Next.js", "TypeScript", "Supabase", "AI"].map((t) => (
             <div key={t} style={{ display: "flex", padding: "10px 22px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.05)" }}>{t}</div>
           ))}
         </div>
