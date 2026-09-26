@@ -54,7 +54,7 @@ export function Footer({ profile }: { profile: Profile }) {
         </p>
 
         <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-line pt-6 text-xs text-muted sm:flex-row">
-          <p>© {new Date().getFullYear()} {profile.name}. Crafted with Next.js, Three.js & care.</p>
+          <p>© {new Date().getFullYear()} {profile.name}. Crafted with Next.js, Supabase & care.</p>
           <p className="font-mono">{profile.location}</p>
         </div>
       </div>

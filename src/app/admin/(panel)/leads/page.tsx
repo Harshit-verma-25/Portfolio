@@ -7,12 +7,13 @@ import type { Lead } from "@/types";
 export const metadata: Metadata = { title: "Leads" };
 
 export default async function LeadsPage() {
-  const { supabase } = await requireStaff("admin");
-  const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+  const { supabase, role } = await requireStaff();
+  const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
   return (
     <div>
       <AdminPageHeader title="Contact leads" description="Every contact-form submission, with a simple pipeline: new → contacted → closed." />
-      <LeadsTable leads={(data ?? []) as Lead[]} />
+      <LeadsTable leads={(data ?? []) as Lead[]} canDelete={role === "admin"} />
     </div>
   );
 }

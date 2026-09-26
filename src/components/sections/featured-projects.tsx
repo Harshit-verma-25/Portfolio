@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import type { Project } from "@/types";
 
 export function FeaturedProjects({ projects }: { projects: Project[] }) {
+  if (projects.length === 0) return null;
   return (
     <section id="work" aria-labelledby="work-title" className="section">
       <div className="container-page">

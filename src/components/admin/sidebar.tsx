@@ -18,26 +18,28 @@ import {
   ScrollText,
   Sparkles,
   UserRound,
+  Users,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { AdminRole } from "@/lib/auth";
+import type { Role } from "@/types";
 
 const NAV: { href: string; label: string; icon: typeof BarChart3; adminOnly?: boolean }[] = [
   { href: "/admin", label: "Analytics", icon: BarChart3 },
   { href: "/admin/profile", label: "Profile", icon: UserRound, adminOnly: true },
-  { href: "/admin/projects", label: "Projects", icon: FolderKanban },
-  { href: "/admin/experiences", label: "Experience", icon: Briefcase },
-  { href: "/admin/skills", label: "Skills", icon: Sparkles },
+  { href: "/admin/projects", label: "Projects", icon: FolderKanban, adminOnly: true },
+  { href: "/admin/experiences", label: "Experience", icon: Briefcase, adminOnly: true },
+  { href: "/admin/skills", label: "Skills", icon: Sparkles, adminOnly: true },
   { href: "/admin/certifications", label: "Certifications", icon: ScrollText },
   { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquareQuote },
   { href: "/admin/achievements", label: "Achievements", icon: Award },
-  { href: "/admin/posts", label: "Blog", icon: BookOpen },
-  { href: "/admin/media", label: "Media", icon: ImageIcon },
-  { href: "/admin/leads", label: "Leads", icon: Inbox, adminOnly: true },
+  { href: "/admin/posts", label: "Blog", icon: BookOpen, adminOnly: true },
+  { href: "/admin/media", label: "Media", icon: ImageIcon, adminOnly: true },
+  { href: "/admin/leads", label: "Leads", icon: Inbox },
+  { href: "/admin/team", label: "Team", icon: Users, adminOnly: true },
 ];
 
-export function AdminSidebar({ email, role }: { email: string; role: AdminRole }) {
+export function AdminSidebar({ email, role }: { email: string; role: Role }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [pathname]);

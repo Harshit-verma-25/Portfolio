@@ -1,32 +1,49 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-
-export type AdminRole = "admin" | "editor";
+import type { Role } from "@/types";
 
 /**
- * Resolves the signed-in staff member. Roles live in `admin_users` (see migrations):
- *  - admin  → everything, including leads, analytics, media deletion and profile
- *  - editor → content CRUD only
- * RLS enforces the same rules in the database, so this is defence in depth.
+ * Resolves the signed-in user and their role from `public.profiles`.
+ *
+ *  - admin  → everything
+ *  - editor → dashboard, testimonials, certifications, achievements, lead statuses
+ *  - null   → signed in but no dashboard access
+ *
+ * RLS enforces the same rules in the database; these checks keep the UI honest.
+ * `getUser()` validates the JWT with Supabase Auth (unlike `getSession()`), so an expired or
+ * revoked session is treated as signed out.
  */
-export async function getStaff() {
+export const getSession = cache(async () => {
   if (!isSupabaseConfigured) return null;
   const supabase = await createClient();
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase.from("admin_users").select("role").eq("user_id", user.id).maybeSingle();
-  if (!data) return null;
-  return { user, role: data.role as AdminRole, supabase };
+  if (error || !user) return null;
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  return { user, role: (profile?.role ?? null) as Role | null, supabase };
+});
+
+export type Staff = NonNullable<Awaited<ReturnType<typeof getSession>>> & { role: Role };
+
+export async function requireStaff(minRole: Role = "editor"): Promise<Staff> {
+  const session = await getSession();
+  if (!session) redirect("/admin/login");
+  if (!session.role) redirect("/admin/login?error=unauthorized");
+  if (minRole === "admin" && session.role !== "admin") redirect("/admin?error=forbidden");
+  return session as Staff;
 }
 
-export async function requireStaff(minRole: AdminRole = "editor") {
-  const staff = await getStaff();
-  if (!staff) redirect("/admin/login?error=unauthorized");
-  if (minRole === "admin" && staff.role !== "admin") redirect("/admin?error=forbidden");
-  return staff;
+/** For server actions: returns an error message instead of redirecting. */
+export async function authorize(minRole: Role = "editor"): Promise<{ ok: true; staff: Staff } | { ok: false; error: string }> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "Your session has expired. Please sign in again." };
+  if (!session.role) return { ok: false, error: "Your account doesn't have dashboard access." };
+  if (minRole === "admin" && session.role !== "admin") return { ok: false, error: "Only admins can do that." };
+  return { ok: true, staff: session as Staff };
 }

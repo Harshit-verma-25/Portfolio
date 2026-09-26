@@ -1,16 +1,35 @@
 import { NextResponse } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { safeAdminPath } from "@/lib/supabase/env";
 
-/** Exchanges the magic-link / OAuth code for a session cookie. */
+/**
+ * Completes email-based auth flows (password recovery, invites, email change) and sets the
+ * session cookie. Supports both link formats Supabase can send:
+ *   - PKCE:      /auth/callback?code=…                       (default for @supabase/ssr)
+ *   - token hash /auth/callback?token_hash=…&type=recovery   (custom email templates)
+ */
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") ?? "/admin";
-  const safeNext = next.startsWith("/admin") ? next : "/admin";
+  const tokenHash = url.searchParams.get("token_hash");
+  const type = url.searchParams.get("type") as EmailOtpType | null;
+  const next = safeAdminPath(url.searchParams.get("next"), type === "recovery" ? "/admin/reset-password" : "/admin");
+
+  const supabase = await createClient();
+  let error: { message: string } | null = null;
+
   if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(safeNext, url.origin));
+    ({ error } = await supabase.auth.exchangeCodeForSession(code));
+  } else if (tokenHash && type) {
+    ({ error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash }));
+  } else {
+    error = { message: "missing code" };
   }
-  return NextResponse.redirect(new URL("/admin/login?error=auth", url.origin));
+
+  if (error) {
+    console.warn("[auth/callback]", error.message);
+    return NextResponse.redirect(new URL("/admin/login?error=link", url.origin));
+  }
+  return NextResponse.redirect(new URL(next, url.origin));
 }

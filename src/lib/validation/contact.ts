@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { BUDGETS } from "./budgets";
 
-export const BUDGETS = ["< ₹50k", "₹50k – ₹2L", "₹2L – ₹5L", "₹5L+", "Full-time role", "Not sure yet"] as const;
+export { BUDGETS };
 
 export const contactSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name").max(100),

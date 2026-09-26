@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { m, type Variants } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const item: Variants = {
@@ -9,7 +9,7 @@ const item: Variants = {
 };
 
 export function Reveal({ children, className, delay = 0, as = "div" }: { children: React.ReactNode; className?: string; delay?: number; as?: "div" | "li" | "section" }) {
-  const Comp = motion[as];
+  const Comp = m[as];
   return (
     <Comp className={className} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-10% 0px" }} variants={item} transition={{ delay }}>
       {children}
@@ -19,7 +19,7 @@ export function Reveal({ children, className, delay = 0, as = "div" }: { childre
 
 export function Stagger({ children, className, stagger = 0.08 }: { children: React.ReactNode; className?: string; stagger?: number }) {
   return (
-    <motion.div
+    <m.div
       className={className}
       initial="hidden"
       whileInView="show"
@@ -27,14 +27,14 @@ export function Stagger({ children, className, stagger = 0.08 }: { children: Rea
       variants={{ hidden: {}, show: { transition: { staggerChildren: stagger } } }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
 export function StaggerItem({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <motion.div className={cn(className)} variants={item}>
+    <m.div className={cn(className)} variants={item}>
       {children}
-    </motion.div>
+    </m.div>
   );
 }

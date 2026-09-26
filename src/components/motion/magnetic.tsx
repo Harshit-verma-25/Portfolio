@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { m, useMotionValue, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /** Pulls its child toward the pointer. Disabled automatically on touch and reduced motion (via MotionConfig). */
@@ -22,8 +22,8 @@ export function Magnetic({ children, strength = 0.35, className }: { children: R
   };
 
   return (
-    <motion.div ref={ref} onPointerMove={onMove} onPointerLeave={reset} style={{ x, y }} className={cn("inline-block", className)}>
+    <m.div ref={ref} onPointerMove={onMove} onPointerLeave={reset} style={{ x, y }} className={cn("inline-block", className)}>
       {children}
-    </motion.div>
+    </m.div>
   );
 }

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { saveProfile } from "@/app/admin/actions";
+import { saveSiteProfile } from "@/app/admin/actions";
 import type { Profile } from "@/types";
 import { MediaPicker } from "./media-picker";
 
@@ -37,7 +37,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     e.preventDefault();
     setStatus(null);
     startTransition(async () => {
-      const res = await saveProfile({
+      const res = await saveSiteProfile({
         ...p,
         socials: Object.fromEntries(Object.entries(p.socials).filter(([, v]) => v)),
         now_building: { ...p.now_building, items: itemsText.split("\n").map((s) => s.trim()).filter(Boolean) },

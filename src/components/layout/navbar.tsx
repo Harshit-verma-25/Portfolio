@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { AnimatePresence, m, useMotionValueEvent, useScroll } from "framer-motion";
 import { Menu, Sparkles, SquareTerminal, X } from "lucide-react";
 import { navItems } from "@/lib/site";
 import { useUI } from "@/store/ui";
@@ -36,7 +36,7 @@ export function Navbar() {
 
   return (
     <>
-      <motion.header
+      <m.header
         initial={{ y: -100 }}
         animate={{ y: hidden ? -100 : 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
@@ -65,7 +65,7 @@ export function Navbar() {
                   className={cn("relative rounded-full px-4 py-2 text-sm transition-colors", isActive(item.href) ? "text-fg" : "text-muted hover:text-fg")}
                 >
                   {isActive(item.href) && (
-                    <motion.span layoutId="nav-active" className="absolute inset-0 -z-10 rounded-full bg-white/[0.08]" transition={{ type: "spring", stiffness: 400, damping: 35 }} />
+                    <span className="absolute inset-0 -z-10 rounded-full bg-white/[0.08]" />
                   )}
                   {item.label}
                 </Link>
@@ -104,11 +104,11 @@ export function Navbar() {
             </button>
           </div>
         </nav>
-      </motion.header>
+      </m.header>
 
       <AnimatePresence>
         {menuOpen && (
-          <motion.div
+          <m.div
             id="mobile-menu"
             role="dialog"
             aria-modal="true"
@@ -121,7 +121,7 @@ export function Navbar() {
           >
             <ul className="flex flex-1 flex-col gap-2">
               {navItems.map((item, i) => (
-                <motion.li key={item.href} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.06, ease: [0.16, 1, 0.3, 1], duration: 0.6 }}>
+                <m.li key={item.href} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.06, ease: [0.16, 1, 0.3, 1], duration: 0.6 }}>
                   <Link
                     href={item.href}
                     className={cn("flex items-baseline gap-4 py-2 text-5xl font-semibold tracking-tight", isActive(item.href) ? "text-fg" : "text-zinc-400")}
@@ -129,7 +129,7 @@ export function Navbar() {
                     <span className="font-mono text-xs text-accent">0{i + 1}</span>
                     {item.label}
                   </Link>
-                </motion.li>
+                </m.li>
               ))}
             </ul>
             <div className="grid grid-cols-2 gap-3">
@@ -140,7 +140,7 @@ export function Navbar() {
                 <Sparkles className="size-4" /> Ask AI
               </button>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

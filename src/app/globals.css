@@ -29,6 +29,7 @@
   --animate-aurora: aurora 18s ease-in-out infinite alternate;
   --animate-marquee: marquee 40s linear infinite;
   --animate-pulse-soft: pulse-soft 3s ease-in-out infinite;
+  --animate-float: float 7s ease-in-out infinite;
 
   @keyframes aurora {
     0% { transform: translate3d(-10%, -5%, 0) rotate(0deg) scale(1); }
@@ -38,6 +39,10 @@
   @keyframes marquee {
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
   }
   @keyframes pulse-soft {
     0%, 100% { opacity: 1; }

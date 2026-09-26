@@ -3,21 +3,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Github } from "lucide-react";
-import { ProjectHeroVisual } from "@/components/projects/project-hero";
+import { ProjectCover } from "@/components/projects/project-cover";
+import { TrackView } from "@/components/projects/track-view";
 import { ArchitectureFlow } from "@/components/projects/architecture-flow";
 import { ProjectCard } from "@/components/projects/project-card";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { TextReveal } from "@/components/motion/text-reveal";
 import { Button } from "@/components/ui/button";
 import { JsonLd, breadcrumbJsonLd, projectJsonLd } from "@/components/seo/json-ld";
-import { getProjectBySlug, getProjects } from "@/lib/content";
-import { projects as staticProjects } from "@/lib/data/content";
+import { getProjectBySlug, getProjectSlugs, getProjects } from "@/lib/content";
 
 export const revalidate = 3600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  return staticProjects.map((p) => ({ slug: p.slug }));
+  return getProjectSlugs();
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -89,7 +89,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </header>
 
         <div className="mt-12">
-          <ProjectHeroVisual project={project} />
+          <TrackView slug={project.slug} />
+          <ProjectCover project={project} priority className="aspect-[16/10] w-full overflow-hidden rounded-[2rem] border border-line md:aspect-[21/9]" />
         </div>
 
         <dl className="mt-10 grid grid-cols-2 gap-6 md:grid-cols-4">

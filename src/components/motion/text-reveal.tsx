@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -25,7 +25,7 @@ export function TextReveal({
   id?: string;
 }) {
   const words = text.split(" ");
-  const MotionTag = motion[Tag];
+  const MotionTag = m[Tag];
   return (
     <MotionTag
       id={id}
@@ -37,13 +37,13 @@ export function TextReveal({
     >
       {words.map((word, i) => (
         <span key={i} aria-hidden className="inline-block overflow-hidden pb-[0.12em] align-bottom">
-          <motion.span
+          <m.span
             className={cn("inline-block", wordClassName)}
             variants={{ hidden: { y: "110%", rotate: 4 }, show: { y: "0%", rotate: 0, transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] } } }}
           >
             {word}
             {i < words.length - 1 ? " " : ""}
-          </motion.span>
+          </m.span>
         </span>
       ))}
     </MotionTag>

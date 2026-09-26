@@ -1,21 +1,16 @@
 import { SiteProviders } from "@/components/layout/providers";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { CustomCursor } from "@/components/layout/custom-cursor";
 import { ScrollProgress } from "@/components/layout/scroll-progress";
 import { Assistant } from "@/components/chat/assistant";
 import { TerminalOverlay } from "@/components/terminal/terminal-overlay";
 import { JsonLd, personJsonLd, websiteJsonLd } from "@/components/seo/json-ld";
 import { getExperiences, getProfile, getProjects, getSkills } from "@/lib/content";
+import { toTerminalData } from "@/components/terminal/terminal-data";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [profile, projects, skills, experiences] = await Promise.all([getProfile(), getProjects(), getSkills(), getExperiences()]);
-  const terminalData = {
-    profile,
-    projects: projects.map(({ slug, title, tagline, category, tech }) => ({ slug, title, tagline, category, tech })),
-    skills: skills.map(({ name, category, proficiency }) => ({ name, category, proficiency })),
-    experiences: experiences.map(({ company, position, start_date, end_date }) => ({ company, position, start_date, end_date })),
-  };
+  const terminalData = toTerminalData({ profile, projects, skills, experiences });
 
   return (
     <SiteProviders>
@@ -31,7 +26,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Footer profile={profile} />
       <Assistant />
       <TerminalOverlay data={terminalData} />
-      <CustomCursor />
       <div aria-hidden className="noise" />
     </SiteProviders>
   );

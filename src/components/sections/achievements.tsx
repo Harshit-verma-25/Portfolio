@@ -5,6 +5,7 @@ import { formatDate } from "@/lib/utils";
 import type { Achievement, Certification } from "@/types";
 
 export function Achievements({ achievements, certifications }: { achievements: Achievement[]; certifications: Certification[] }) {
+  if (achievements.length === 0 && certifications.length === 0) return null;
   return (
     <section aria-labelledby="achievements-title" className="section">
       <div className="container-page">

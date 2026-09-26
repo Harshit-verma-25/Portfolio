@@ -1,26 +1,21 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { TiltCard } from "@/components/motion/tilt-card";
-import { useUI } from "@/store/ui";
+import { SpotlightCard } from "@/components/motion/spotlight-card";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
 import { ProjectCover } from "./project-cover";
 
 export function ProjectCard({ project, large = false, priority = false }: { project: Project; large?: boolean; priority?: boolean }) {
-  const setCursor = useUI((s) => s.setCursor);
   return (
-    <TiltCard accent={project.accent} className="h-full">
-      <Link
-        href={`/projects/${project.slug}`}
-        data-cursor="view"
-        onPointerEnter={() => setCursor("view", "Case study")}
-        onPointerLeave={() => setCursor("default")}
-        className="flex h-full flex-col focus-visible:outline-none"
-        aria-label={`${project.title} — ${project.tagline}. Read the case study.`}
-      >
-        <ProjectCover project={project} priority={priority} className={cn("w-full", large ? "aspect-[4/3] md:aspect-[21/9]" : "aspect-[4/3]")} />
+    <SpotlightCard glow={project.accent} className="h-full">
+      <Link href={`/projects/${project.slug}`} className="flex h-full flex-col focus-visible:outline-none" aria-label={`${project.title} — ${project.tagline}. Read the case study.`}>
+        <div className="overflow-hidden">
+          <ProjectCover
+            project={project}
+            priority={priority}
+            className={cn("w-full transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-[1.02]", large ? "aspect-[4/3] md:aspect-[21/9]" : "aspect-[4/3]")}
+          />
+        </div>
         <div className="flex flex-1 flex-col gap-4 p-6 md:p-7">
           <div className="flex items-start justify-between gap-4">
             <div>
@@ -40,6 +35,6 @@ export function ProjectCard({ project, large = false, priority = false }: { proj
           </ul>
         </div>
       </Link>
-    </TiltCard>
+    </SpotlightCard>
   );
 }

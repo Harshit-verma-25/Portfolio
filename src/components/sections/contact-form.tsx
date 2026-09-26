@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BUDGETS } from "@/lib/validation/contact";
+import { BUDGETS } from "@/lib/validation/budgets";
 import { track } from "@/lib/analytics";
 
 type Errors = Partial<Record<"name" | "email" | "subject" | "message" | "budget", string[]>>;
@@ -47,16 +47,16 @@ export function ContactForm() {
     <div className="relative">
       <AnimatePresence mode="wait">
         {status === "success" ? (
-          <motion.div key="ok" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="glass flex min-h-[420px] flex-col items-center justify-center rounded-3xl p-10 text-center" role="status">
+          <m.div key="ok" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="glass flex min-h-[420px] flex-col items-center justify-center rounded-3xl p-10 text-center" role="status">
             <CheckCircle2 className="size-12 text-success" />
             <h3 className="mt-5 text-2xl font-semibold">Message received.</h3>
             <p className="mt-2 max-w-sm text-muted">Thanks for reaching out — I usually reply within 24 hours.</p>
             <Button variant="outline" className="mt-8" onClick={() => setStatus("idle")}>
               Send another
             </Button>
-          </motion.div>
+          </m.div>
         ) : (
-          <motion.form key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onSubmit={onSubmit} className="glass space-y-5 rounded-3xl p-6 md:p-8" noValidate>
+          <m.form key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onSubmit={onSubmit} className="glass space-y-5 rounded-3xl p-6 md:p-8" noValidate>
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <Label htmlFor="name">Name</Label>
@@ -105,7 +105,7 @@ export function ContactForm() {
               {status === "loading" ? <Loader2 className="animate-spin" /> : <ArrowRight />}
               {status === "loading" ? "Sending…" : "Send message"}
             </Button>
-          </motion.form>
+          </m.form>
         )}
       </AnimatePresence>
     </div>

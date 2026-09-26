@@ -1,33 +1,51 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { AuthShell, Notice } from "@/components/admin/auth-shell";
 import { LoginForm } from "@/components/admin/login-form";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { getSession } from "@/lib/auth";
+import { isSupabaseConfigured, safeAdminPath } from "@/lib/supabase/env";
 
-export const metadata: Metadata = { title: "Admin sign in", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Sign in", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
 
-const ERRORS: Record<string, string> = {
-  unauthorized: "Your account doesn't have admin access.",
-  "not-configured": "Supabase isn't configured. Add the environment variables from .env.example.",
-  auth: "Sign-in link was invalid or expired.",
+const MESSAGES: Record<string, { kind: "error" | "info" | "success"; text: string }> = {
+  unauthorized: { kind: "error", text: "This account doesn't have dashboard access. Ask an admin to grant you a role." },
+  "not-configured": { kind: "error", text: "Supabase isn't configured on this deployment. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY." },
+  link: { kind: "error", text: "That link is invalid or has expired. Request a new one." },
 };
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
-  const { error, next } = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; signed_out?: string; reset?: string }> }) {
+  const params = await searchParams;
+  const session = await getSession();
+
+  // Already signed in with a role → straight to the dashboard (no login loop for staff).
+  if (session?.role) redirect(safeAdminPath(params.next));
+
+  const message = params.error
+    ? MESSAGES[params.error]
+    : params.reset
+      ? { kind: "success" as const, text: "Password updated. Sign in with your new password." }
+      : params.signed_out
+        ? { kind: "info" as const, text: "You've been signed out." }
+        : null;
+
   return (
-    <main className="relative grid min-h-dvh place-items-center overflow-hidden px-4">
-      <div aria-hidden className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(99,102,241,0.25),transparent_55%)]" />
-      <div className="relative w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-primary via-secondary to-accent font-mono text-sm font-bold">HV</span>
-          <h1 className="mt-5 text-2xl font-semibold">Portfolio admin</h1>
-          <p className="mt-1 text-sm text-muted">Sign in to manage content.</p>
-        </div>
-        {error && ERRORS[error] && (
-          <p role="alert" className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-            {ERRORS[error]}
+    <AuthShell title="Portfolio admin" description="Sign in to manage your content.">
+      {message && <Notice kind={message.kind}>{message.text}</Notice>}
+      {session && !session.role ? (
+        <div className="glass space-y-4 rounded-3xl p-6 text-sm">
+          <p>
+            Signed in as <span className="font-medium">{session.user.email}</span>, but this account has no role yet.
           </p>
-        )}
-        <LoginForm next={next ?? "/admin"} disabled={!isSupabaseConfigured} />
-      </div>
-    </main>
+          <form action="/auth/signout" method="post">
+            <button type="submit" className="h-10 w-full rounded-full border border-line-strong text-sm hover:bg-white/5">
+              Sign out
+            </button>
+          </form>
+        </div>
+      ) : (
+        <LoginForm next={safeAdminPath(params.next)} disabled={!isSupabaseConfigured} />
+      )}
+    </AuthShell>
   );
 }

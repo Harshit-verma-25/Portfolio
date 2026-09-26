@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function useMediaQuery(query: string, initial = false) {
   const [matches, setMatches] = useState(initial);
@@ -15,21 +15,25 @@ export function useMediaQuery(query: string, initial = false) {
 }
 
 export const usePrefersReducedMotion = () => useMediaQuery("(prefers-reduced-motion: reduce)");
-export const useIsMobile = () => useMediaQuery("(max-width: 767px)");
-export const useHasFinePointer = () => useMediaQuery("(hover: hover) and (pointer: fine)");
 
-export type DeviceTier = "low" | "mid" | "high";
-
-/** Rough GPU/CPU tier used to scale particle counts, DPR and post effects. */
-export function useDeviceTier(): DeviceTier {
-  const [tier, setTier] = useState<DeviceTier>("mid");
+/** True once the element has scrolled into view (one-shot). */
+export function useInViewOnce<T extends Element>(rootMargin = "0px 0px -10% 0px") {
+  const ref = useRef<T>(null);
+  const [inView, setInView] = useState(false);
   useEffect(() => {
-    const cores = navigator.hardwareConcurrency ?? 4;
-    const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 4;
-    const mobile = window.matchMedia("(max-width: 767px)").matches;
-    if (cores <= 4 || memory <= 2) setTier("low");
-    else if (mobile || cores <= 8) setTier("mid");
-    else setTier("high");
-  }, []);
-  return tier;
+    const el = ref.current;
+    if (!el || inView) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [inView, rootMargin]);
+  return [ref, inView] as const;
 }
